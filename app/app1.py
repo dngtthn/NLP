@@ -78,6 +78,7 @@ def analyze_comments(file_path, output_path):
     import pickle
     import matplotlib.pyplot as plt
     from wordcloud import WordCloud
+
     # Load mô hình
     model_filename = '/content/drive/MyDrive/NLP/Models/best_knn_model.sav'
     best_knn_model = pickle.load(open(model_filename, 'rb'))
@@ -87,9 +88,6 @@ def analyze_comments(file_path, output_path):
 
     model_filename = '/content/drive/MyDrive/NLP/Models/best_rf_model.sav'
     best_rf_model = pickle.load(open(model_filename, 'rb'))
-
-    # model_filename = '/content/drive/MyDrive/NLP/Models/biLSTM_model.sav'
-    # biLSTM_model = pickle.load(open(model_filename, 'rb'))
 
     vectorizer = '/content/drive/MyDrive/NLP/Models/vectorizer.sav'
     vectorizer = pickle.load(open(vectorizer, 'rb'))
@@ -116,7 +114,7 @@ def analyze_comments(file_path, output_path):
 
     comment_column_index = df.columns.get_loc('2_comment')
 
-    # Create an empty list to store tokens for all rows
+    # Tách từ
     all_tokens = []
 
     for i in range(len(df)):
@@ -124,14 +122,12 @@ def analyze_comments(file_path, output_path):
         for phrase in keep_together:
             text = re.sub(r'\b' + phrase + r'\b', phrase.replace(" ", "_"), text)
 
-        tokens = ViTokenizer.tokenize(text).split()  # Tokenize after replacing spaces in phrases
+        tokens = ViTokenizer.tokenize(text).split()
 
-        # Instead of assigning to df.loc directly, append to the list
         all_tokens.append(tokens)
-
-    # After processing all rows, assign the list of token lists to the 'tokens' column
     df["tokens"] = all_tokens
 
+    # Kết tokens
     df["sent_tokens"] = df["tokens"].apply(lambda x: " ".join(x)).astype(str)
 
     X = df['sent_tokens']  # Các câu tokenized
@@ -161,7 +157,7 @@ def analyze_comments(file_path, output_path):
     plt.title("Số lượng bình luận tiêu cực và tích cực")
     plt.show()
 
-    # Wordcloud for positive comments
+    # Wordcloud comment tích cực
     positive_text = " ".join(df[df['predicted_label'] == 1]['sent_tokens'])
     wordcloud_positive = WordCloud(width=800, height=400, background_color='white').generate(positive_text)
     plt.figure(figsize=(10, 5))
@@ -170,7 +166,7 @@ def analyze_comments(file_path, output_path):
     plt.title("Wordcloud for Positive Comments")
     plt.show()
 
-    # Wordcloud for negative comments
+    # Wordcloud comment tiêu cực
     negative_text = " ".join(df[df['predicted_label'] == 0]['sent_tokens'])
     wordcloud_negative = WordCloud(width=800, height=400, background_color='white').generate(negative_text)
     plt.figure(figsize=(10, 5))
@@ -188,11 +184,4 @@ def analyze_comments(file_path, output_path):
         print(f"Kết quả phân tích đã được lưu tại: {output_path}")
     except Exception as e:
         print(f"Lỗi khi xuất file: {e}")
-
-# /content/drive/MyDrive/NLP/Data/test ứng dụng.csv
-# /content/drive/MyDrive/NLP/Data
-if __name__ == "__main__":
-    input_file = input("Nhập đường dẫn file CSV chứa bình luận: ")
-    output_dir = input("Nhập đường dẫn thư mục lưu kết quả: ")
-    analyze_comments(input_file, output_dir)
 
